@@ -7,25 +7,37 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-
 URL="https://www.coop.se/butiker-erbjudanden/coop/coop-city-karlstad/"
 
 driver = webdriver.Chrome("E:\OneDrive\Skrivbord\chromedriver")
+response=requests.get(URL)
+
 content = driver.page_source
+
+print("page_source:")
+print(driver.page_source)
+
 Butik="Coop"
 Produkter=[]
 Pris=[]
 giltighetsdatum="nuvarande vecka"
 
-response=requests.get(URL)
+
 page_content = BeautifulSoup(response.content, "html.parser")
 driver.get('%s' % URL)
 try:
     WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".cmpboxbtnyes"))).click()
+    print("test?")
 except:
     print("No cookie?") 
     
-soup = BeautifulSoup(content)
+soup = BeautifulSoup(content, features="html.parser")
+print("content:")
+print(content)
+
+print("soup:")
+print(soup)
+
 for a in soup.findAll('div', attrs={'class':'IteamTeaser-content'}):
     titel=a.find('h3', attrs={'class':'IteamTeaser-heading'})
     #titel=a.find('div', attrs={'class':'IteamTeaser-info'})
@@ -33,6 +45,8 @@ for a in soup.findAll('div', attrs={'class':'IteamTeaser-content'}):
 
     Produkter.append(titel.text)
     Pris.append(price.text)
+    print(titel)
+    print(price)
 
 df = pd.DataFrame({'Kedja:': Butik,'Product Name:':Produkter,'Price:':Pris}) 
 df.to_csv('products.csv', index=False, encoding='utf-8')
