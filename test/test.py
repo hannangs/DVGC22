@@ -1,5 +1,5 @@
 from selenium import webdriver
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import pandas as pd
 
 Butik=[]
@@ -9,8 +9,11 @@ giltighetsdatum=[]
 
 driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver")
 
-
 driver.get("<a href="https://www.flipkart.com/laptops/">https://www.flipkart.com/laptops/</a>~buyback-guarantee-on-laptops-/pr?sid=6bo%2Cb5g&amp;amp;amp;amp;amp;amp;amp;amp;amp;uniq")
+
+products=[] #List to store name of the product
+prices=[] #List to store price of the product
+ratings=[] #List to store rating of the product
 
 content = driver.page_source
 soup = BeautifulSoup(content)
