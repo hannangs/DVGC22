@@ -19,38 +19,31 @@ Produkter=[]
 Pris=[]
 giltighetsdatum="nuvarande vecka"
 
-page_content = BeautifulSoup(response.content, "html.parser")
 driver.get('%s' % URL)
 try:
     WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".cmpboxbtnyes"))).click()
-    print("test?")
 except:
     print("No cookie?") 
     
 soup = BeautifulSoup(content, features="html.parser")
-print("content:")
-print(content)
+i = 0
 
-print("soup:")
-print(soup)
+r = requests.get('https://www.coop.se/butiker-erbjudanden/coop/coop-city-karlstad/')
+soup = BeautifulSoup(r.content, 'html.parser')
+len(soup.find_all('article', class_='ItemTeaser'))
 
-for a in soup.findAll('div', attrs={'class':'IteamTeaser-content'}):
-    titel=a.find('h3', attrs={'class':'IteamTeaser-heading'})
-    #titel=a.find('div', attrs={'class':'IteamTeaser-info'})
-    price=a.find('span', attrs={'class':'Splash-priceLarge'})
-
-    Produkter.append(titel.text)
-    Pris.append(price.text)
-    print(titel)
-    print(price)
+#for a in soup.findAll('article',href=True, attrs={'class':'ItemTeaser'}):
+#    titel=a.find('h3', attrs={'class':'ItemTeaser-heading'})
+#    #titel=a.find('div', attrs={'class':'IteamTeaser-info'})
+#    price=a.find('span', attrs={'class':'Splash-priceLarge'})
+#    i = i+1
+#    Produkter.append(titel.text)
+#    Pris.append(price.text)
 
 df = pd.DataFrame({'Kedja:': Butik,'Product Name:':Produkter,'Price:':Pris}) 
 df.to_csv('products.csv', index=False, encoding='utf-8')
 
-#print(Produkter)
-#print (Pris)
-#print(content)
-
+print(i)
 
 #<a class="cmpboxbtn cmpboxbtnyes cmptxt_btn_yes" role="button" href="#">
 #<span id="cmpbntyestxt">Acceptera alla cookies</span></a>
