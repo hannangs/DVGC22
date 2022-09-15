@@ -9,19 +9,15 @@ from selenium.webdriver.support import expected_conditions as EC
 
 URL="https://www.coop.se/butiker-erbjudanden/coop/coop-city-karlstad/"
 
-driver = webdriver.Chrome("E:\OneDrive\Skrivbord\chromedriver")
-response=requests.get(URL)
-
+from selenium.webdriver.chrome.service import Service
+driver = webdriver.Chrome("E:\OneDrive\Skrivbord\chromedriver.exe")
+driver.get(URL)
 content = driver.page_source
-
-print("page_source:")
-print(driver.page_source)
 
 Butik="Coop"
 Produkter=[]
 Pris=[]
 giltighetsdatum="nuvarande vecka"
-
 
 page_content = BeautifulSoup(response.content, "html.parser")
 driver.get('%s' % URL)
