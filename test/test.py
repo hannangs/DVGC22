@@ -9,7 +9,6 @@ giltighetsdatum=[]
 
 driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver")
 
-driver.get("<a href="https://www.coop.se/handla/aktuella-erbjudanden/</a>)
 
 driver.get("<a href="https://www.flipkart.com/laptops/">https://www.flipkart.com/laptops/</a>~buyback-guarantee-on-laptops-/pr?sid=6bo%2Cb5g&amp;amp;amp;amp;amp;amp;amp;amp;amp;uniq")
 
