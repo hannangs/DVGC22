@@ -6,6 +6,9 @@ import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
 
 URL="https://www.coop.se/butiker-erbjudanden/coop/coop-city-karlstad/"
 
@@ -27,7 +30,6 @@ except:
     print("No cookie?") 
     
 soup = BeautifulSoup(content, features="html.parser")
-#test=len(soup.find_all('article', class_='ItemTeaser'))
 Butik=soup.find('h2', attrs={'class':'u-text1XLarge u-textFamilySecondary u-colorMidBase u-marginBz u-marginRxsm'})
 
 for a in soup.find_all('article', class_='ItemTeaser'):
@@ -45,7 +47,7 @@ for a in soup.find_all('article', class_='ItemTeaser'):
     info=temp_info2[1].strip()
     extraData.append(info)
 
-    price1=(a.find('span', attrs={'class':'Splash-priceLarge'})).text               #fix
+    price1=(a.find('span', attrs={'class':'Splash-priceLarge'})).text
     price2=(a.find('span', attrs={'class':'Splash-priceSup'}))
     try:
         if(price2.string=="\xa0"):
@@ -64,20 +66,30 @@ for a in soup.find_all('article', class_='ItemTeaser'):
     
     Pris.append(price)
 
-df = pd.DataFrame({'Kedja:': Butik,'Product Name:':Produkter,'Märke:':Marken,'Price:':Pris, 'info':extraData}) 
-#df = pd.DataFrame({'Kedja:': Butik,'Product Name:':Produkter,'Märke:':Marken,'Price:':Pris, 'info':extraData, 'Giltig:':giltighetsdatum }) 
+antalProdukter=len(soup.find_all('article', class_='ItemTeaser'))
 
-df.to_csv('products.csv', index=False, encoding='utf-8')
+cred=credentials.Certificate("groceryapp-b4d12-firebase-adminsdk-78m5u-b4190054f8.json")
+firebase_admin.initialize_app(cred)
 
-#<a class="cmpboxbtn cmpboxbtnyes cmptxt_btn_yes" role="button" href="#">
-#<span id="cmpbntyestxt">Acceptera alla cookies</span></a>
+for i in range(antalProdukter):
 
-#test coop: https://www.coop.se/butiker-erbjudanden/coop/coop-city-karlstad/
-#for a in soup.findAll('div', attrs={'class':'IteamTeaser-content'}):
-    #titel=a.find('h3', attrs={'class':'IteamTeaser-heading'})
-    #titel=a.find('div', attrs={'class':'IteamTeaser-info'})
-    #price=a.find('span', attrs={'class':'Splash-priceLarge'})
+    data = {
+        "Varumärke/ursprung": Marken[i],
+        "Övrig information": extraData[i],
+        "Pris": Pris[i],
+        "Giltig datum": giltighetsdatum
+    }
+
+    db=firestore.client()
+
+    def save(collection_id, document_id, data):
+        db.collection(collection_id).document(document_id).set(data)
+
+    save(
+        collection_id =Butik.text,
+        document_id= Produkter[i],
+        data = data
+    )
 
 #test ica: https://www.ica.se/butiker/kvantum/hammaro/ica-kvantum-hammaro-16102/erbjudanden/
-#
-#
+
