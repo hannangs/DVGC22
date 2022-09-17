@@ -10,7 +10,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-URL="https://www.coop.se/butiker-erbjudanden/coop/coop-city-karlstad/"
+URL="https://www.coop.se/butiker-erbjudanden/stora-coop/stora-coop-bergvik/"
 
 from selenium.webdriver.chrome.service import Service
 driver = webdriver.Chrome("E:\OneDrive\Skrivbord\chromedriver.exe")
@@ -32,9 +32,16 @@ except:
 soup = BeautifulSoup(content, features="html.parser")
 Butik=soup.find('h2', attrs={'class':'u-text1XLarge u-textFamilySecondary u-colorMidBase u-marginBz u-marginRxsm'})
 
+errorRakning=0
+
 for a in soup.find_all('article', class_='ItemTeaser'):
     titel=a.find('h3', attrs={'class':'ItemTeaser-heading'})
-    Produkter.append(titel.text)
+    if '/' in titel.text:
+        titel=titel.text
+        titel=titel.replace('/', ' eller ')
+        Produkter.append(titel)
+    else:
+        Produkter.append(titel.text)
 
     try:
         marke=a.find('span', attrs={'class':'ItemTeaser-brand'})
@@ -46,8 +53,11 @@ for a in soup.find_all('article', class_='ItemTeaser'):
     temp_info2=temp_info.split('\n')[1::1]
     info=temp_info2[1].strip()
     extraData.append(info)
-
-    price1=(a.find('span', attrs={'class':'Splash-priceLarge'})).text
+    try:
+        price1=(a.find('span', attrs={'class':'Splash-priceLarge'})).text
+    except:
+        price1=(a.find('span', attrs={'class':'Splash-text'})).text
+   
     price2=(a.find('span', attrs={'class':'Splash-priceSup'}))
     try:
         if(price2.string=="\xa0"):
@@ -57,13 +67,15 @@ for a in soup.find_all('article', class_='ItemTeaser'):
     except:
         price=price1
     
-    price3=(a.find('span', attrs={'class':'Splash-pricePre'})).text
-    if(price3==''):
-        price=price
+    try:
+        price3=(a.find('span', attrs={'class':'Splash-pricePre'})).text
+        if(price3==''):
+            price=price
 
-    else:
-        price=price3+" "+price
-    
+        else:
+            price=price3+" "+price
+    except:
+        price3=0
     Pris.append(price)
 
 antalProdukter=len(soup.find_all('article', class_='ItemTeaser'))
@@ -71,13 +83,12 @@ antalProdukter=len(soup.find_all('article', class_='ItemTeaser'))
 cred=credentials.Certificate("groceryapp-b4d12-firebase-adminsdk-78m5u-b4190054f8.json")
 firebase_admin.initialize_app(cred)
 
-for i in range(antalProdukter):
+for y in range(antalProdukter):
 
     data = {
-        "Varumärke/ursprung": Marken[i],
-        "Övrig information": extraData[i],
-        "Pris": Pris[i],
-        "Giltig datum": giltighetsdatum
+        "Varumärke/ursprung": Marken[y],
+        "Övrig information": extraData[y],
+        "Pris": Pris[y],
     }
 
     db=firestore.client()
@@ -87,9 +98,6 @@ for i in range(antalProdukter):
 
     save(
         collection_id =Butik.text,
-        document_id= Produkter[i],
+        document_id= Produkter[y],
         data = data
     )
-
-#test ica: https://www.ica.se/butiker/kvantum/hammaro/ica-kvantum-hammaro-16102/erbjudanden/
-
