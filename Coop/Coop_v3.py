@@ -34,7 +34,7 @@ for i in LankarErbjButik:
     Marken=[]
     extraData=[]
     Pris=[]
-    giltighetsdatum=[]
+    giltighetsdatum="Giltigt 2022-09-12 till 2022-09-18."
 
     driver.get('%s' % URL)
     try:
@@ -99,7 +99,7 @@ for i in LankarErbjButik:
             "Varumärke/ursprung": Marken[i],
             "Övrig information": extraData[i],
             "Pris": Pris[i],
-            "Giltig datum": giltighetsdatum
+            "Giltig datum": giltighetsdatum,
         }
 
         db=firestore.client()

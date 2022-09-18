@@ -89,6 +89,7 @@ for y in range(antalProdukter):
         "Varumärke/ursprung": Marken[y],
         "Övrig information": extraData[y],
         "Pris": Pris[y],
+        "Giltig datum": "Giltigt 2022-09-12 till 2022-09-18.",
     }
 
     db=firestore.client()
