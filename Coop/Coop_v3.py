@@ -104,11 +104,13 @@ for i in LankarErbjButik:
 
         db=firestore.client()
 
-        def save(collection_id, document_id, data):
-            db.collection(collection_id).document(document_id).set(data)
+        def save(collection_id1,document_id1,collection_id, document_id, data):
+            db.collection(collection_id1).document(document_id1).collection(collection_id).document(document_id).set(data)
 
         save(          
-            collection_id =Butik.text,
-            document_id= Produkter[i],
+            collection_id1="Aktiva erbj.",
+            document_id1 ="Coop",
+            collection_id= Butik.text,
+            document_id =Produkter[i],
             data = data
         )

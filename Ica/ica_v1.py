@@ -6,13 +6,23 @@ from selenium.webdriver.support import expected_conditions as EC
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+from datetime import datetime, timedelta
 
 cred=credentials.Certificate("groceryapp-b4d12-firebase-adminsdk-78m5u-b4190054f8.json")
 firebase_admin.initialize_app(cred)
 db=firestore.client()
+driver = webdriver.Chrome("E:\OneDrive\Skrivbord\chromedriver.exe")
+driver.set_window_size(1920, 1080)
 
 doc_ref = db.collection(u'store list').document(u'Butik info').collection(u'Ica')
 doc = doc_ref.get()
+doc_ref2 = db.collection(u'Nyckelord')
+doc2 = doc_ref2.get()
+
+#Datum=datetime.today().strftime('%Y-%m-%d')
+giltigStart = datetime.now()
+tidBer = timedelta(days=6)
+giltigSlut = giltigStart + tidBer
 
 LankarErbjButik=[]
 for docs in doc:
@@ -23,216 +33,223 @@ for docs in doc:
     Data[ind]
     LankarErbjButik.append(Data[0])
 
-for i in LankarErbjButik:
+def deny():
+    jamfortPris_kg.append("Data saknas")
+    jamfortPris_L.append("Data saknas")
 
-    URL = i
-    driver = webdriver.Chrome("E:\OneDrive\Skrivbord\chromedriver.exe")
-    driver.set_window_size(1920, 1080)
-    driver.get(URL)
-    content = driver.page_source
+def prisKoll(info_temp0):
+    if '/kg.' in info_temp0: #'Jfr pris 58:00-82:86/kg.'
+        if '-' in info_temp0:
+            info_temp3=info_temp0.split('-')
+            info_temp4=info_temp3[1].replace('/kg.', '')
+            info_temp5=info_temp4.replace(':', '.').strip()
+            jamfortPris_kg.append(info_temp5)
+            jamfortPris_L.append("Data saknas")
+        else:
+            info_temp3=info_temp0.replace('Jfr pris', '')
+            info_temp4=info_temp3.replace('/kg.', '')
+            info_temp5=info_temp4.replace(':', '.').strip()
+            jamfortPris_kg.append(info_temp5)
+            jamfortPris_L.append("Data saknas")
+
+    elif '/liter.' in info_temp0: #'Jfr pris 42:45/kg, 39:47-45:00/liter, 22:50-28:12/liter drickklar.' 
+        if '-' in info_temp0:
+            info_temp3=info_temp0.split('-')
+            info_temp4=info_temp3[1].replace('/liter.', '')
+            info_temp5=info_temp4.replace(':', '.').strip()
+            jamfortPris_kg.append(info_temp5)
+            jamfortPris_L.append("Data saknas")
+        else:
+            info_temp3=info_temp0.replace('Jfr pris', '')
+            info_temp4=info_temp3.replace('/liter.', '')
+            info_temp5=info_temp4.replace(':', '.').strip()
+            jamfortPris_L.append(info_temp5)
+            jamfortPris_kg.append("Data saknas")
+    else:
+        deny()
+
+def hamtaData(a):
+    try:
+        titel=a.find('h2', attrs={'class':'offer-type__product-name splash-bg icon-store-pseudo'})
+        if not titel:
+            titel=a.find('h2', attrs={'class':'offer-type__product-name splash-bg icon-store-pseudo no-price'})
+    except:
+            titel="titel saknas"
+        
+    try:
+        titel=titel.text.replace('\n', '')
+        titel=titel.strip()
+    except:
+        titel="titel saknas"
+
+    if '/' in titel:
+        titel=titel.replace('/', ' eller ')
+        Produkter.append(titel)
+    else:
+        Produkter.append(titel)
+
+    for word in doc2:
+        if word.id in titel:
+            temp=list(word._data.values())
+            Kategori.append(temp[0])
+        else:
+            Kategori.append("Övrigt")
+
+    try:
+        info=(a.find('p', attrs={'class':'offer-type__product-info'})).text
+    except:
+        info=""
+
+    extraData.append(info)
+
+    try:
+        price1=(a.find('div', attrs={'class':'product-price__price-value'})).text
+    except:
+        price1="temp" #text istället för pris?
+
+    price2=(a.find('div', attrs={'class':'product-price__decimal'})) #ören
+    try:
+        if(price2.string=="\xa0"):
+            price=price1
+        else:
+            price=price1+":"+price2.text
+    except:
+        price=price1
     
+    try:
+        price3=(a.find('div', attrs={'class':'product-price__amount'})).text
+        if(price3==''):
+            price=price
+
+        else:
+            price=price3+" "+price
+    except:
+        price3=0
+    
+    Pris.append(price)
+
+    try:
+        if ' för ' in price:
+            temp2=price.replace(' för ', '/')
+            temp3=temp2.replace(':-', '')
+            temp4=temp3.split('/')
+            tal1=int(temp4[0])
+            tal2=int(temp4[1])
+            jamfortPris_st.append(tal2/tal1)
+        else:
+            pris_temp=price.replace(':', '.')
+            pris_temp=price.replace('-', '0')
+            jamfortPris_st.append((pris_temp))
+    except:
+        jamfortPris_st.append((price))
+
+for i in LankarErbjButik:
+    driver.get(i)
+
     Produkter=[]
     extraData=[]
     Pris=[]
-    giltighetsdatum="Giltigt 2022-09-12 till 2022-09-18."
+    Kategori=[]
+    jamfortPris_st=[]
+    jamfortPris_kg=[]
+    jamfortPris_L=[]
 
-    driver.get('%s' % URL)
+    driver.get('%s' % i)
 
     try:
-        WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".banner-actions-container"))).click()
+        WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".banner-actions-container"))).click()
     except:
-        print("No cookie?") 
+        print("No cookie") 
 
-    soup = BeautifulSoup(content, features="html.parser")
+    soup = BeautifulSoup(driver.page_source, features="html.parser")
     Butik=soup.find('h1', attrs={'class':'store-heading'}).text
 
- ######################################################################################################
-
-    for a in soup.find_all('div', class_='offer-type js-open-product-info offer-type--focus-item'): #ändra?
+    for b in soup.find_all('div', class_='offer-type js-open-product-info offer-type--focus-item'): #ändra?
+        hamtaData(b)
         
-        try:
-            titel=a.find('h2', attrs={'class':'offer-type__product-name splash-bg icon-store-pseudo'})
-            if not titel:
-                titel=a.find('h2', attrs={'class':'offer-type__product-name splash-bg icon-store-pseudo no-price'})
-        except:
-            titel="titel saknas"
-        
-        try:
-            titel=titel.text.replace('\n', '')
-            titel=titel.strip()
-        except:
-            titel="titel saknas"
+    for b in soup.find_all('div', class_='offer-type js-open-product-info offer-type--focus-item  active'): #ändra?
+        hamtaData(b)
 
-        if '/' in titel:
-            titel=titel.replace('/', ' eller ')
-            Produkter.append(titel)
+    for b in soup.find_all('div', class_='offer-type js-open-product-info offer-type--regular-hit'): #ändra?
+        hamtaData(b)
+
+    for a in soup.find_all('div', class_='product-info-wrapper'):
+        temp_prisinfo=a.text
+        info_temp=temp_prisinfo.split('\n')
+        while '' in info_temp:
+            info_temp.remove('')
+
+        if(len(info_temp)<=5):
+            deny()
+
+        elif(len(info_temp)==6):
+            if '/kg' in info_temp[3] or '/liter.' in info_temp[3]:
+                info_temp2=info_temp[3]
+                prisKoll(info_temp2)
+            else:
+                deny()  
+
+        elif(len(info_temp)==9):
+            if '/kg' in info_temp[6] or '/liter.' in info_temp[6]:
+                info_temp2=info_temp[6]
+                prisKoll(info_temp2)
+            else:
+                deny()
+
+        elif(len(info_temp)==10):
+            if '/kg' in info_temp[7] or '/liter.' in info_temp[7]:
+                info_temp2=info_temp[7]
+                prisKoll(info_temp2)
+            else:
+                deny()
+
+        elif(len(info_temp)==11):
+            if '/kg' in info_temp[8] or '/liter.' in info_temp[8]:
+                    info_temp2=info_temp[8]
+                    prisKoll(info_temp2)
+            else:
+                deny()
+        
+        elif(len(info_temp)==12):
+            if '/kg' in info_temp[9] or '/liter.' in info_temp[9]:
+                info_temp2=info_temp[9]
+                prisKoll(info_temp2)
+            else:
+                deny()
+        
+        elif(len(info_temp)==13):
+            if '/kg' in info_temp[10] or '/liter.' in info_temp[10]:
+                info_temp2=info_temp[10]
+                prisKoll(info_temp2)
+            else:
+                deny()
+        
+        elif(len(info_temp)==14):
+            if '/kg' in info_temp[11] or '/liter.' in info_temp[11]:
+                info_temp2=info_temp[11]
+                prisKoll(info_temp2)
         else:
-            Produkter.append(titel)
-
-        try:
-            info=(a.find('p', attrs={'class':'offer-type__product-info'})).text
-        except:
-            info=""
-
-        extraData.append(info)
-
-        try:
-            price1=(a.find('div', attrs={'class':'product-price__price-value'})).text
-        except:
-            price1="temp" #text istället för pris?
-
-        price2=(a.find('div', attrs={'class':'product-price__decimal'})) #ören
-        try:
-            if(price2.string=="\xa0"):
-                price=price1
-            else:
-                price=price1+":"+price2.text
-        except:
-            price=price1
-        
-        try:
-            price3=(a.find('div', attrs={'class':'product-price__amount'})).text
-            if(price3==''):
-                price=price
-
-            else:
-                price=price3+" "+price
-        except:
-            price3=0
-        
-        Pris.append(price)
-
- ########################################################################################################
-
-    for a in soup.find_all('div', class_='offer-type js-open-product-info offer-type--focus-item  active'): #ändra?
-        
-        try:
-            titel=a.find('h2', attrs={'class':'offer-type__product-name splash-bg icon-store-pseudo'})
-            if not titel:
-                titel=a.find('h2', attrs={'class':'offer-type__product-name splash-bg icon-store-pseudo no-price'})
-        except:
-            titel="titel saknas"
-        
-        try:
-            titel=titel.text.replace('\n', '')
-            titel=titel.strip()
-        except:
-            titel="titel saknas"
-
-        if '/' in titel:
-            titel=titel.replace('/', ' eller ')
-            Produkter.append(titel)
-        else:
-            Produkter.append(titel)
-
-        try:
-            info=(a.find('p', attrs={'class':'offer-type__product-info'})).text
-        except:
-            info=""
-
-        extraData.append(info)
-
-        try:
-            price1=(a.find('div', attrs={'class':'product-price__price-value'})).text
-        except:
-            price1="temp" #text istället för pris?
-
-        price2=(a.find('div', attrs={'class':'product-price__decimal'})) #ören
-        try:
-            if(price2.string=="\xa0"):
-                price=price1
-            else:
-                price=price1+":"+price2.text
-        except:
-            price=price1
-        
-        try:
-            price3=(a.find('div', attrs={'class':'product-price__amount'})).text
-            if(price3==''):
-                price=price
-
-            else:
-                price=price3+" "+price
-        except:
-            price3=0
-        
-        Pris.append(price)
-
- ########################################################################################################
- 
-    for a in soup.find_all('div', class_='offer-type js-open-product-info offer-type--regular-hit'): #ändra?
-            
-        try:
-            titel=a.find('h2', attrs={'class':'offer-type__product-name splash-bg icon-store-pseudo'})
-            if not titel:
-                titel=a.find('h2', attrs={'class':'offer-type__product-name splash-bg icon-store-pseudo no-price'})
-        except:
-            titel="titel saknas"
-            
-        try:
-            titel=titel.text.replace('\n', '')
-            titel=titel.strip()
-        except:
-            titel=titel
-
-        if '/' in titel:
-            titel=titel.replace('/', ' eller ')
-            Produkter.append(titel)
-        else:
-            Produkter.append(titel)
-
-        try:
-            info=(a.find('p', attrs={'class':'offer-type__product-info'})).text
-        except:
-            info=""
-
-        extraData.append(info)
-
-        try:
-            price1=(a.find('div', attrs={'class':'product-price__price-value'})).text
-        except:
-            price1="temp"
-
-        price2=(a.find('div', attrs={'class':'product-price__decimal'})) #ören
-        try:
-            if(price2.string=="\xa0"):
-                price=price1
-            else:
-                price=price1+":"+price2.text
-        except:
-            price=price1
-        
-        try:
-            price3=(a.find('div', attrs={'class':'product-price__amount'})).text
-            if(price3==''):
-                price=price
-
-            else:
-                price=price3+" "+price
-        except:
-            price3=0
-            
-        Pris.append(price)
- 
- ########################################################################################################
+            deny()
 
     antalProdukter=len(soup.find_all('div', class_='offer-type__product-details'))
-    
-    for i in range(antalProdukter):
-
+    for y in range(antalProdukter):
         data = {
-            "Övrig information": extraData[i],
-            "Pris": Pris[i],
-            "Giltig datum": giltighetsdatum,
+            "Övrig information": extraData[y],
+            "Pris": Pris[y],
+            "Kategori": Kategori[y],
+            "Giltig start": giltigStart,
+            "Giltig slut": giltigSlut,
+            "Jämfört pris(st)":jamfortPris_st[y],
+            "Jämfört pris(/kg)": jamfortPris_kg[y],
+            "Jämfört pris(/lit)": jamfortPris_L[y],
         }
 
-        db=firestore.client()
-
-        def save(collection_id, document_id, data):
-            db.collection(collection_id).document(document_id).set(data)
-
-        save(          
-            collection_id =Butik,
-            document_id= Produkter[i],
-            data = data,
+        def save1(collection_id1,document_id1,collection_id, document_id, data):
+            db.collection(collection_id1).document(document_id1).collection(collection_id).document(document_id).set(data)
+        save1(          
+            collection_id1="Aktiva erbj.",
+            document_id1 ="Ica",
+            collection_id= Butik,
+            document_id =Produkter[y],
+            data = data
         )
