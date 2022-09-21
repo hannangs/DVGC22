@@ -1,21 +1,16 @@
-from selenium import webdriver
-from bs4 import BeautifulSoup
-from selenium.webdriver.support import expected_conditions as EC
+
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
-import time
-from datetime import datetime, timedelta
 
 cred=credentials.Certificate("groceryapp-b4d12-firebase-adminsdk-78m5u-b4190054f8.json")
 firebase_admin.initialize_app(cred)
 db=firestore.client()
 
-from google.cloud.firestore_v1beta1 import Client
-client = Client()
-collection = client.collection('my_collection')
-documents = list(collection.get())
-print("# of documents in collection: {}".format(len(documents)))
+doc_ref = db.collection(u'Radera test').document(u'Coop').collection(u'Coop City Karlstad')
+doc = doc_ref.get()
+
+count=len(doc)
 
 def delete_collection(coll_ref, batch_size):
     docs = coll_ref.limit(batch_size).stream()
@@ -29,4 +24,5 @@ def delete_collection(coll_ref, batch_size):
     if deleted >= batch_size:
         return delete_collection(coll_ref, batch_size)
 
-delete_collection(u'Lidl Rattgatan', )
+
+delete_collection(doc_ref, count)
