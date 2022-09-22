@@ -14,7 +14,7 @@ db=firestore.client()
 driver = webdriver.Chrome("E:\OneDrive\Skrivbord\chromedriver.exe")
 driver.set_window_size(1920, 1080)
 
-doc_ref = db.collection(u'store list').document(u'Butik info').collection(u'Ica')
+doc_ref = db.collection(u'store list').document(u'Butik info').collection(u'ICA')
 doc = doc_ref.get()
 doc_ref2 = db.collection(u'Nyckelord')
 doc2 = doc_ref2.get()
@@ -31,7 +31,7 @@ for docs in doc:
     val='Länk erbj.'
     ind=Titlar.index(val)
     Data[ind]
-    LankarErbjButik.append(Data[0])
+    LankarErbjButik.append(Data[ind])
 
 def deny():
     jamfortPris_kg.append("Data saknas")
@@ -88,12 +88,16 @@ def hamtaData(a):
     else:
         Produkter.append(titel)
 
-    for word in doc2:
-        if word.id in titel:
-            temp=list(word._data.values())
-            Kategori.append(temp[0])
-        else:
-            Kategori.append("Övrigt")
+    for b in range (0,len(doc2)):    
+        if  ((doc2[b].id).lower()) in ((titel.lower())):
+            Titlar=list((doc2[b])._data.keys())
+            Data=list((doc2[b])._data.values())
+            ind=Titlar.index('Kategori')
+            Kategori.append(Data[ind])
+            break
+    
+    if len(Produkter) > len(Kategori):
+        Kategori.append("Övrigt")
 
     try:
         info=(a.find('p', attrs={'class':'offer-type__product-info'})).text
@@ -157,7 +161,7 @@ for i in LankarErbjButik:
     driver.get('%s' % i)
 
     try:
-        WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".banner-actions-container"))).click()
+        WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".banner-actions-container"))).click()
     except:
         print("No cookie") 
 
@@ -248,7 +252,7 @@ for i in LankarErbjButik:
             db.collection(collection_id1).document(document_id1).collection(collection_id).document(document_id).set(data)
         save1(          
             collection_id1="Aktiva erbj.",
-            document_id1 ="Ica",
+            document_id1 ="ICA",
             collection_id= Butik,
             document_id =Produkter[y],
             data = data

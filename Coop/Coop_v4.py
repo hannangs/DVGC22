@@ -26,8 +26,7 @@ for docs in doc:
     Data=list(docs._data.values())
     val='Länk erbj.'
     ind=Titlar.index(val)
-    Data[ind]
-    LankarErbjButik.append(Data[0])
+    LankarErbjButik.append(Data[ind])
 
 for i in LankarErbjButik:
     Produkter=[]
@@ -61,22 +60,28 @@ for i in LankarErbjButik:
             Produkter.append(titel)   
         else:
             Produkter.append(titel.text)
-        for word in doc2:
-                if word.id in titel:
-                    temp=list(word._data.values())
-                    Kategori.append(temp[0])
-                else:
-                    Kategori.append("Övrigt")
+            titel=titel.text
 
         try:
             marke=a.find('span', attrs={'class':'ItemTeaser-brand'})
             Marken.append(marke.text)
         except:
-            Marken.append("Märke saknas")
-        
+            Marken.append("Märke saknas") 
+            marke=""
+
+        for b in range (0,len(doc2)):    
+            if  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
+                Titlar=list((doc2[b])._data.keys())
+                Data=list((doc2[b])._data.values())
+                ind=Titlar.index('Kategori')
+                Kategori.append(Data[ind])
+                break
+
+        if len(Produkter) > len(Kategori):
+            Kategori.append("Övrigt")
+     
         temp_info=(a.find('p', attrs={'class':'ItemTeaser-description'})).text
         temp_info2=temp_info.split('\n')[1::1]
-        Marken.append(temp_info2[0])
         temp_info=temp_info2[1].strip()
         info.append(temp_info)
         

@@ -82,9 +82,12 @@ for i in LankarErbjButik:
     driver.get(i)
     content = driver.page_source
 
-    button=driver.find_element("xpath",'//*[@id="CybotCookiebotDialog"]/div/div[1]/button')
-    button.click()
-    time.sleep(2)
+    try:
+        button=driver.find_element("xpath",'//*[@id="CybotCookiebotDialog"]/div/div[1]/button')
+        button.click()
+        time.sleep(2)
+    except:
+        print()
 
     soup = BeautifulSoup(content, features="html.parser")
 
@@ -97,13 +100,6 @@ for i in LankarErbjButik:
             titel=titel.replace('/', ' eller ')
         Produkter.append(titel)
 
-        for word in doc2:
-            if word.id in titel:
-                temp=list(word._data.values())
-                Kategori.append(temp[0])
-            else:
-                Kategori.append("Övrigt")
-
         try:
             marke=a.find('p', attrs={'class':'ret-o-card__content'})
             if '\n' in marke.text:
@@ -113,6 +109,17 @@ for i in LankarErbjButik:
             Marken.append(marke.text)
         except:
             Marken.append("Märke saknas")
+
+        for b in range (0,len(doc2)):    
+            if  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
+                Titlar=list((doc2[b])._data.keys())
+                Data=list((doc2[b])._data.values())
+                ind=Titlar.index('Kategori')
+                Kategori.append(Data[ind])
+                break
+
+        if len(Produkter) > len(Kategori):
+            Kategori.append("Övrigt")
 
         try:
             price1=(a.find('span', attrs={'class':'lidl-m-pricebox__price'})).text

@@ -58,11 +58,8 @@ for docs in doc:
     val='Länk erbj.'
     ind=Titlar.index(val)
     Data[ind]
-    LankarErbjButik.append(Data[0])
-    jamfortPris_st=[]
-    jamfortPris_kg=[]
-    jamfortPris_L=[]
-    Kategori=[]
+    LankarErbjButik.append(Data[ind])
+
 
 for i in LankarErbjButik:
 
@@ -74,6 +71,10 @@ for i in LankarErbjButik:
     extraData=[]
     Pris=[]
     Marken=[]
+    jamfortPris_st=[]
+    jamfortPris_kg=[]
+    jamfortPris_L=[]
+    Kategori=[]
 
     driver.get('%s' % URL)
     
@@ -109,22 +110,28 @@ for i in LankarErbjButik:
             Produkter.append(titel)
         else:
             Produkter.append(titel)
-        
-        for word in doc2:
-            if word.id in titel:
-                temp=list(word._data.values())
-                Kategori.append(temp[0])
-            else:
-                Kategori.append("Övrigt")
-        
-        temp_info=(a.find(attrs={'class':'Productstyles__StyledProductDisplayVolume-sc-16nua0l-8 eyLzNX'})).text
-        extraData.append(temp_info)
 
         try:
             marke=a.find('span', attrs={'class':'Productstyles__StyledProductManufacturerBrand-sc-16nua0l-7 hnYIHY'})
             Marken.append(marke.text)
         except:
-            Marken.append("Märke saknas")        
+            Marken.append("Märke saknas")     
+
+        for b in range (0,len(doc2)):    
+            if  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
+                Titlar=list((doc2[b])._data.keys())
+                Data=list((doc2[b])._data.values())
+                ind=Titlar.index('Kategori')
+                Kategori.append(Data[ind])
+                break
+
+        if len(Produkter) > len(Kategori):
+            Kategori.append("Övrigt")
+        
+        temp_info=(a.find(attrs={'class':'Productstyles__StyledProductDisplayVolume-sc-16nua0l-8 eyLzNX'})).text
+        extraData.append(temp_info)
+
+     
         
         try:
             price1=(a.find('span', attrs={'class':'PriceLabelstyles__StyledProductPriceText-sc-koui33-2 dzPBER'})).text
