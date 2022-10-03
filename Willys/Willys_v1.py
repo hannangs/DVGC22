@@ -22,6 +22,10 @@ giltigStart = datetime.now()
 tidBer = timedelta(days=6)
 giltigSlut = giltigStart + tidBer
 
+def deny():
+    jamfortPris_L.append("information saknas")
+    jamfortPris_kg.append("information saknas")
+
 def prisKilo(vikt, pris):
     jamfortPris_kg.append(pris/vikt)
     jamfortPris_L.append("information saknas")
@@ -75,6 +79,7 @@ for i in LankarErbjButik:
     jamfortPris_kg=[]
     jamfortPris_L=[]
     Kategori=[]
+    keyWord=[]
 
     driver.get('%s' % URL)
     
@@ -84,21 +89,11 @@ for i in LankarErbjButik:
         WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID,'onetrust-accept-btn-handler'))).click()
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".Buttonstyles__StyledButton-sc-1g4oxwr-0.dLUxJp.LoadMore__LoadMoreBtn-sc-16fjaj7-3.bnbvpm"))).click()
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        for a in range (0,6):
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(1)
     except:
-        print("ingen cookie")
+        ...
 
     soup = BeautifulSoup(driver.page_source, features="html.parser")
     Butik=soup.find('h2', attrs={'class':'Headingstyles__StyledH2-sc-r7tfy8-1 cJhDBd'}).text
@@ -118,15 +113,28 @@ for i in LankarErbjButik:
             Marken.append("Märke saknas")     
 
         for b in range (0,len(doc2)):    
-            if  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
+            temp=(doc2[b].id).lower()
+            if('te' == temp):
+                Kategori.append('Drink')
+                keyWord.append('Te')
+            elif('öl'== temp):
+                Kategori.append('Drink')
+                keyWord.append('Öl')
+            elif('bullar'== temp):    
+                Kategori.append('Ice cream, sweers & snacks')
+                keyWord.append('Bullar')
+
+            elif  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
                 Titlar=list((doc2[b])._data.keys())
                 Data=list((doc2[b])._data.values())
                 ind=Titlar.index('Kategori')
                 Kategori.append(Data[ind])
+                keyWord.append(doc2[b].id)
                 break
-
+    
         if len(Produkter) > len(Kategori):
             Kategori.append("Övrigt")
+            keyWord.append("Ord saknas")
         
         temp_info=(a.find(attrs={'class':'Productstyles__StyledProductDisplayVolume-sc-16nua0l-8 eyLzNX'})).text
         extraData.append(temp_info)
@@ -171,76 +179,104 @@ for i in LankarErbjButik:
             jamfortPris_st.append((pris_temp))
     
         prisPerEnhet=(a.find('span', attrs={'class':'Productstyles__StyledProductDisplayVolume-sc-16nua0l-8 eyLzNX'})).text
-        temp_2="tom"
         flag=0
         
+        try:
+            if 'x' in prisPerEnhet:
+                temp=prisPerEnhet
+                temp1=prisPerEnhet.split('x')
+                tal1=temp1[0]
+                tal2=temp1[1]
+                if 'g' in tal2:
+                    temp4 = 'g'
+                    tal2=tal2.replace('g','')
+                elif 'ml' in tal2:
+                    temp4 = 'ml'
+                    tal2=tal2.replace('ml','')
+                elif 'l' in tal2:
+                    temp4 = 'l'
+                    tal2=tal2.replace('l','')
+                elif 'kg' in tal2:
+                    temp4 = 'kg'
+                    tal2=tal2.replace('kg','')
 
-        if '•' in prisPerEnhet:
-            temp1=prisPerEnhet.split('•')
-            prisPerEnhet=temp1[1].strip()
-        
-        if '-' in prisPerEnhet:
-            temp1=prisPerEnhet.split('-')
-            prisPerEnhet=temp1[1].strip()
-
-        if 'I lösvikt' in prisPerEnhet:
-            jamfortPris_L.append("information saknas")
-            jamfortPris_kg.append("information saknas")
-            flag=1
-        
-        if 'Ca' in prisPerEnhet:
-            prisPerEnhet=prisPerEnhet.replace('Ca', '').strip()    
+                nyMangd= str((int(tal1)*int(tal2)))+temp4
+                try:
+                    prisPerEnhet=prisPerEnhet.replace(temp,nyMangd)
+                except:
+                    print()
+            if '•' in prisPerEnhet:
+                temp1=prisPerEnhet.split('•')
+                prisPerEnhet=temp1[1].strip()
+            if '-' in prisPerEnhet:
+                temp1=prisPerEnhet.split('-')
+                prisPerEnhet=temp1[1].strip()
+            if 'I lösvikt' in prisPerEnhet:
+                jamfortPris_L.append("information saknas")
+                jamfortPris_kg.append("information saknas")
+                flag=1
+            if 'Ca' in prisPerEnhet:
+                prisPerEnhet=prisPerEnhet.replace('Ca', '').strip()    
+            if 'Från' in prisPerEnhet:
+                prisPerEnhet=prisPerEnhet.replace('Från', '').strip()   
             
-        if 'kg' in prisPerEnhet:
-            temp4=string_to_decimal(prisPerEnhet)
-            prisKilo(temp4, int(price1))
-            flag=1
+            
+            if 'p/' in prisPerEnhet:
+                if 'cl' in prisPerEnhet:
+                    temp=prisPerEnhet.replace('cl', '')
+                elif 'L' in prisPerEnhet:
+                    temp=prisPerEnhet.replace('L', '')
+                temp1=temp.split('/')
+                tal1=temp1[0].replace('p','')
+                tal2=temp1[1]
+                nyMangd= str((int(tal1)*int(tal2)))
+                prisPerEnhet=prisPerEnhet.replace(temp,nyMangd)
+            elif '/' in prisPerEnhet:
+                temp1=prisPerEnhet.split('/')
+                prisPerEnhet=temp1[1]
 
-        elif 'g' in temp_2:
-            temp11=temp_2.replace('g', '')
-            temp12=gram_to_kg(temp11)
-            prisKilo(temp12, int(price1))
-            flag=1
+            if 'kg' in prisPerEnhet:
+                temp4=string_to_decimal(prisPerEnhet)
+                prisKilo(temp4, int(price1))
+                flag=1
 
-        elif ('g' in prisPerEnhet):
-            temp_vikt=prisPerEnhet.replace('g', '')
-            temp_vikt2=gram_to_kg(temp_vikt)
-            prisKilo(temp_vikt2, int(price1))
-            flag=1
+            elif ('g' in prisPerEnhet):
+                temp_vikt=prisPerEnhet.replace('g', '')
+                temp_vikt2=gram_to_kg(temp_vikt)
+                prisKilo(temp_vikt2, int(price1))
+                flag=1
 
-        if 'ml' in prisPerEnhet:
-            temp_volym1=prisPerEnhet.replace('ml', '')
-            temp_volym=gram_to_kg(temp_volym1)
-            prisLit(temp_volym, int(price1))
-            flag=1
+            if 'ml' in prisPerEnhet:
+                temp_volym1=prisPerEnhet.replace('ml', '')
+                temp_volym=gram_to_kg(temp_volym1)
+                prisLit(temp_volym, int(price1))
+                flag=1
 
-        elif 'dl' in prisPerEnhet:
-            temp_volym1=prisPerEnhet.replace('dl', '')
-            if ',' in temp_volym1:
-                temp_volym1=temp_volym1.replace(',', '')
-            temp_volym=int(round(float(temp_volym1)))/10
-            prisLit(temp_volym, int(price1))
-            flag=1
-        
-        elif 'cl' in prisPerEnhet:
-            temp_volym1=prisPerEnhet.replace('cl', '')
-            if ',' in temp_volym1:
-                temp_volym1=temp_volym1.replace(',', '')
-            temp_volym=int(round(float(temp_volym1)))/1000
-            prisLit(temp_volym, int(price1))
-            flag=1
+            elif 'dl' in prisPerEnhet:
+                temp_volym1=prisPerEnhet.replace('dl', '')
+                if ',' in temp_volym1:
+                    temp_volym1=temp_volym1.replace(',', '')
+                temp_volym=int(round(float(temp_volym1)))/10
+                prisLit(temp_volym, int(price1))
+                flag=1
+            
+            elif 'cl' in prisPerEnhet:
+                temp_volym1=prisPerEnhet.replace('cl', '')
+                if ',' in temp_volym1:
+                    temp_volym1=temp_volym1.replace(',', '')
+                temp_volym=int(round(float(temp_volym1)))/1000
+                prisLit(temp_volym, int(price1))
+                flag=1
 
-        elif 'L' in prisPerEnhet:
-            temp4=string_to_decimal(prisPerEnhet)
-            prisLit(temp4, int(price1))
-            flag=1
-        elif (('p' or 'm') or 'Styck') in prisPerEnhet:
-            jamfortPris_L.append("information saknas")
-            jamfortPris_kg.append("information saknas")
-            flag=1
-        if flag==0:
-            jamfortPris_L.append("information saknas")
-            jamfortPris_kg.append("information saknas")
+            elif 'L' in prisPerEnhet:
+                temp4=string_to_decimal(prisPerEnhet)
+                prisLit(temp4, int(price1))
+                flag=1
+
+            if flag==0:
+                deny()
+        except:
+            deny()
 
 
     for y in range(len(soup.find_all(attrs='Productstyles__StyledProduct-sc-16nua0l-0 aRuiG'))):
@@ -255,6 +291,7 @@ for i in LankarErbjButik:
             "Jämfört pris(st)": jamfortPris_st[y],
             "Jämfört pris(/kg)": jamfortPris_kg[y],
             "Jämfört pris(/lit)": jamfortPris_L[y],
+            "Nyckelord": keyWord[y],
         }
 
         def save1(collection_id1,document_id1,collection_id, document_id, data):

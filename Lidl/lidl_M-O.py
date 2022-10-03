@@ -17,38 +17,45 @@ doc_ref = db.collection(u'store list').document(u'Butik info').collection(u'Lidl
 doc = doc_ref.get()
 
 def prisKilo(vikt, pris):
-    jamfortPris_kg.append(int(pris)/vikt)
-    jamfortPris_L.append("information saknas")
-    #print('vikt:', int(pris)/vikt)
+    try:
+        jamfortPris_kg.append(int(pris)/vikt)
+        jamfortPris_L.append("information saknas")
+    except:
+        info_saknas()
 
 def prisLit(volym, pris):
-    jamfortPris_L.append(int(pris)/volym)
-    jamfortPris_kg.append("information saknas")
-    #print('Lit:', int(pris)/volym)
+    try:
+        jamfortPris_L.append(int(pris)/volym)
+        jamfortPris_kg.append("information saknas")
+    except:
+        info_saknas()
 
 def info_saknas():
     jamfortPris_kg.append('Information saknas')
     jamfortPris_L.append('Information saknas') 
 
 def string_to_decimal(volym):
-    if 'kg' in volym:
-        volym=volym.replace('kg', '')
-    else:
-        volym=prisPerEnhet.replace('l', '')
-    
-    if ',' in volym:
-        temp3=volym.split(',')
-        temp2=volym.replace(',', '')
-        if len(temp3[0])==1:
-            temp2=int(temp2)*100
-            temp4=(temp2)/1000
-            return temp4
-        if len(temp3[0])==2:
-            temp2=int(temp2)*10
-            temp4=(temp2)/1000
-            return temp4
-    else:
-        return int(volym)
+    try:
+        if 'kg' in volym:
+            volym=volym.replace('kg', '')
+        else:
+            volym=prisPerEnhet.replace('l', '')
+        
+        if ',' in volym:
+            temp3=volym.split(',')
+            temp2=volym.replace(',', '')
+            if len(temp3[0])==1:
+                temp2=int(temp2)*100
+                temp4=(temp2)/1000
+                return temp4
+            if len(temp3[0])==2:
+                temp2=int(temp2)*10
+                temp4=(temp2)/1000
+                return temp4
+        else:
+            return int(volym)
+    except:
+        info_saknas()
 
 def gram_to_kg(temp):
     temp=(int(temp))/1000
@@ -72,10 +79,11 @@ for i in LankarErbjButik:
     jamfortPris_L=[]
     Kategori=[]
     info=[]
+    keyWord=[]
     giltigStart = datetime.now()
     tidBer = timedelta(days=2)
     giltigSlut = giltigStart + tidBer
-    #driver.get('%s' % URL)
+
     time.sleep(2)
 
     driver = webdriver.Chrome("E:\OneDrive\Skrivbord\chromedriver.exe")
@@ -111,15 +119,28 @@ for i in LankarErbjButik:
             Marken.append("Märke saknas")
 
         for b in range (0,len(doc2)):    
-            if  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
+            temp=(doc2[b].id).lower()
+            if('te' == temp):
+                Kategori.append('Drink')
+                keyWord.append('Te')
+            elif('öl'== temp):
+                Kategori.append('Drink')
+                keyWord.append('Öl')
+            elif('bullar'== temp):    
+                Kategori.append('Ice cream, sweers & snacks')
+                keyWord.append('Bullar')
+
+            elif  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
                 Titlar=list((doc2[b])._data.keys())
                 Data=list((doc2[b])._data.values())
                 ind=Titlar.index('Kategori')
                 Kategori.append(Data[ind])
+                keyWord.append(doc2[b].id)
                 break
-
+    
         if len(Produkter) > len(Kategori):
             Kategori.append("Övrigt")
+            keyWord.append("Ord saknas")
 
         try:
             price1=(a.find('span', attrs={'class':'lidl-m-pricebox__price'})).text
@@ -156,7 +177,9 @@ for i in LankarErbjButik:
         try:
             prisPerEnhet=a.find('div', attrs={'lidl-m-pricebox__basic-quantity'}).text
         except:
-            prisPerEnhet=a.find('span', attrs={'lidl-m-pricebox__discount-prefix'}).text
+            try: prisPerEnhet=a.find('span', attrs={'lidl-m-pricebox__discount-prefix'}).text
+            except: 
+                prisPerEnhet="Info saknas"
         
         try:
             if ':-' in price1:
@@ -169,6 +192,15 @@ for i in LankarErbjButik:
         if '/förp.' in prisPerEnhet:
             prisPerEnhet=prisPerEnhet.replace('/förp.','').strip()
 
+        if 'blad' in prisPerEnhet:
+            prisPerEnhet=''
+        elif 'Olika sorter' in prisPerEnhet:
+            prisPerEnhet=''
+        elif 'olika utföranden' in prisPerEnhet:
+            prisPerEnhet=''
+        elif 'timmar' in prisPerEnhet:
+            prisPerEnhet=''
+
         if ',' in prisPerEnhet:
             temp=prisPerEnhet.split(',')
             prisPerEnhet=temp[0]
@@ -180,6 +212,17 @@ for i in LankarErbjButik:
 
         if '×' in prisPerEnhet:
             temp=prisPerEnhet.split('×')
+            temp3=prisPerEnhet.split(' ')
+            temp3=temp3[0]
+            tal1=temp[0]
+            temp2=temp[1].split(' ')
+            tal2=temp2[0]
+            try:
+                prisPerEnhet=prisPerEnhet.replace(temp3,str(int(tal1)*int(tal2)))
+            except:
+                print()
+        elif 'x' in prisPerEnhet:
+            temp=prisPerEnhet.split('x')  
             temp3=prisPerEnhet.split(' ')
             temp3=temp3[0]
             tal1=temp[0]
@@ -254,7 +297,7 @@ for i in LankarErbjButik:
             "Kategori": Kategori[y],
             "Giltig start": giltigStart,
             "Giltig slut": giltigSlut,
-            "Övrig info":"test", #info[y],
+            "Nyckelord": keyWord[y],
         }
 
         def save1(collection_id1,document_id1,collection_id, document_id, data):

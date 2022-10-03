@@ -37,6 +37,7 @@ for i in LankarErbjButik:
     jamfortPris_L=[]
     Kategori=[]
     info=[]
+    keyWord=[]
 
     URL = i
     driver = webdriver.Chrome("E:\OneDrive\Skrivbord\chromedriver.exe")
@@ -45,7 +46,7 @@ for i in LankarErbjButik:
 
     driver.get('%s' % URL)
     try:
-        WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".cmpboxbtnyes"))).click()
+        WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".cmpboxbtnyes"))).click()
     except:
         print("No cookie?") 
         
@@ -70,51 +71,68 @@ for i in LankarErbjButik:
             marke=""
 
         for b in range (0,len(doc2)):    
-            if  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
+            temp=(doc2[b].id).lower()
+            if('te' == temp):
+                Kategori.append('Drink')
+                keyWord.append('Te')
+            elif('öl'== temp):
+                Kategori.append('Drink')
+                keyWord.append('Öl')
+            elif('bullar'== temp):    
+                Kategori.append('Ice cream, sweers & snacks')
+                keyWord.append('Bullar')
+
+            elif  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
                 Titlar=list((doc2[b])._data.keys())
                 Data=list((doc2[b])._data.values())
                 ind=Titlar.index('Kategori')
                 Kategori.append(Data[ind])
+                keyWord.append(doc2[b].id)
                 break
-
+    
         if len(Produkter) > len(Kategori):
             Kategori.append("Övrigt")
+            keyWord.append("Ord saknas")
      
         temp_info=(a.find('p', attrs={'class':'ItemTeaser-description'})).text
         temp_info2=temp_info.split('\n')[1::1]
         temp_info=temp_info2[1].strip()
         info.append(temp_info)
         
-        if '/kg' in temp_info:
-            info_temp1=temp_info.split('.')
-            info_temp1.pop()
-            try:
-                info_temp2=info_temp1[-1]
-                info_temp3=info_temp2.replace('Jfr-pris', '')
-                info_temp4=info_temp3.replace('/kg', '')
-                info_temp5=info_temp4.replace(':', '.')
-                info_temp=info_temp5.replace('-', '0').strip()
-                jamfortPris_kg.append(info_temp)
-            except:
+        try:
+            if '/kg' in temp_info:
+                info_temp1=temp_info.split('.')
                 info_temp1.pop()
-                info_temp2=info_temp1[-1]
-                info_temp3=info_temp2.replace('Jfr-pris', '')
-                info_temp4=info_temp3.replace('/kg', '')
-                info_temp5=info_temp4.replace(':', '.')
-                info_temp=info_temp5.replace('-', '0').strip()
-                jamfortPris_kg.append(info_temp)
-        else:
+                try:
+                    info_temp2=info_temp1[-1]
+                    info_temp3=info_temp2.replace('Jfr-pris', '')
+                    info_temp4=info_temp3.replace('/kg', '')
+                    info_temp5=info_temp4.replace(':', '.')
+                    info_temp=info_temp5.replace('-', '0').strip()
+                    jamfortPris_kg.append(info_temp)
+                except:
+                    info_temp1.pop()
+                    info_temp2=info_temp1[-1]
+                    info_temp3=info_temp2.replace('Jfr-pris', '')
+                    info_temp4=info_temp3.replace('/kg', '')
+                    info_temp5=info_temp4.replace(':', '.')
+                    info_temp=info_temp5.replace('-', '0').strip()
+                    jamfortPris_kg.append(info_temp)
+            else:
+                jamfortPris_kg.append("Data saknas")
+            if '/lit' in temp_info:
+                info_temp=temp_info.split('.')
+                info_temp.pop()
+                info_temp=info_temp[-1]
+                info_temp=info_temp.replace('Jfr-pris', '')
+                info_temp=info_temp.replace('/lit', '')
+                info_temp=info_temp.replace(':', '.')
+                info_temp=info_temp.replace('-', '0').strip()
+                jamfortPris_L.append(info_temp)
+            else:
+                jamfortPris_L.append("Data saknas")
+        except:
             jamfortPris_kg.append("Data saknas")
-        if '/lit' in temp_info:
-            info_temp=temp_info.split('.')
-            info_temp.pop()
-            info_temp=info_temp[-1]
-            info_temp=info_temp.replace('Jfr-pris', '')
-            info_temp=info_temp.replace('/lit', '')
-            info_temp=info_temp.replace(':', '.')
-            info_temp=info_temp.replace('-', '0').strip()
-            jamfortPris_L.append(info_temp)
-        else:
             jamfortPris_L.append("Data saknas")
         
         try:
@@ -165,6 +183,7 @@ for i in LankarErbjButik:
             "Kategori":Kategori[y],
             "Giltig start": giltigStart,
             "Giltig slut": giltigSlut,
+            "Nyckelord": keyWord[y],
         }
 
         def save1(collection_id1,document_id1,collection_id, document_id, data):
@@ -177,4 +196,6 @@ for i in LankarErbjButik:
             document_id =Produkter[y],
             data = data
         )
+
+driver.close()
 
