@@ -71,18 +71,24 @@ for i in LankarErbjButik:
             marke=""
 
         for b in range (0,len(doc2)):    
-            temp=(doc2[b].id).lower()
+            temp=titel.lower()
             if('te' == temp):
                 Kategori.append('Drink')
                 keyWord.append('Te')
-            elif('öl'== temp):
-                Kategori.append('Drink')
-                keyWord.append('Öl')
+                break
+            elif(temp.startswith('öl')):
+                if 'korv' in temp:
+                    ...
+                else:
+                    Kategori.append('Drink')
+                    keyWord.append('Öl')
+                    break
             elif('bullar'== temp):    
                 Kategori.append('Ice cream, sweers & snacks')
                 keyWord.append('Bullar')
+                break
 
-            elif  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
+            if  ((doc2[b].id).lower()) in ((titel.lower()) or (Marken[-1].text.str.lower())):
                 Titlar=list((doc2[b])._data.keys())
                 Data=list((doc2[b])._data.values())
                 ind=Titlar.index('Kategori')

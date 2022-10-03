@@ -15,6 +15,7 @@ doc_ref2 = db.collection(u'Nyckelord')
 doc2 = doc_ref2.get()
 doc_ref = db.collection(u'store list').document(u'Butik info').collection(u'Lidl')
 doc = doc_ref.get()
+Butiker=['Lidl Rattgatan', 'Lidl Östra Infarten']
 
 veckoStart = datetime.now()
 
@@ -71,6 +72,8 @@ for docs in doc:
     ind=Titlar.index(val)
     Data[ind]
     LankarErbjButik.append(Data[ind])
+
+butik_nr = 0
 
 for i in LankarErbjButik:
     Produkter=[]
@@ -142,18 +145,24 @@ for i in LankarErbjButik:
             Marken.append("Märke saknas")
 
         for b in range (0,len(doc2)):    
-            temp=(doc2[b].id).lower()
+            temp=titel.lower()
             if('te' == temp):
                 Kategori.append('Drink')
                 keyWord.append('Te')
-            elif('öl'== temp):
-                Kategori.append('Drink')
-                keyWord.append('Öl')
+                break
+            elif(temp.startswith('öl')):
+                if 'korv' in temp:
+                    ...
+                else:
+                    Kategori.append('Drink')
+                    keyWord.append('Öl')
+                    break
             elif('bullar'== temp):    
                 Kategori.append('Ice cream, sweers & snacks')
                 keyWord.append('Bullar')
+                break
 
-            elif  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
+            if  ((doc2[b].id).lower()) in ((titel.lower()) or (marke.text.str.lower())):
                 Titlar=list((doc2[b])._data.keys())
                 Data=list((doc2[b])._data.values())
                 ind=Titlar.index('Kategori')
@@ -307,7 +316,7 @@ for i in LankarErbjButik:
     for y in range(len(soup.find_all('a', class_='ret-o-card__link nuc-a-anchor'))):
 
         data = {
-            "info om erbj": "Lidl plus",
+            "info om erbj": "Lördag-söndag",
             "Varumärke/ursprung": Marken[y],
             "Pris": Pris[y],
             "Jämfört pris(st)": jamfortPris_st[y],
@@ -318,27 +327,16 @@ for i in LankarErbjButik:
             "Giltig slut": giltigSlut[y],
             "Nyckelord": keyWord[y],
         }
-
-        def save1(collection_id1,document_id1,collection_id, document_id, data):
+        def save(collection_id1,document_id1,collection_id, document_id, data):
             db.collection(collection_id1).document(document_id1).collection(collection_id).document(document_id).set(data)
-                
-        save1(          
+        save(          
             collection_id1="Aktiva erbj.",
             document_id1 ="Lidl",
-            collection_id= "Lidl Rattgatan",
+            collection_id= Butiker[butik_nr],
             document_id =Produkter[y],
-            data = data
+            data = data,
         )
 
-        def save2(collection_id1,document_id1,collection_id, document_id, data):
-            db.collection(collection_id1).document(document_id1).collection(collection_id).document(document_id).set(data)
-                
-        save2(          
-            collection_id1="Aktiva erbj.",
-            document_id1 ="Lidl",
-            collection_id= "Lidl Östra Infarten",
-            document_id =Produkter[y],
-            data = data
-        )
+    butik_nr=butik_nr+1
 
     driver.quit()

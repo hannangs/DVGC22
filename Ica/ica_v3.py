@@ -101,18 +101,24 @@ def hamtaData(a):
         Produkter.append(titel)
 
     for b in range (0,len(doc2)):
-        temp=(doc2[b].id).lower()
+        temp=titel.lower()
         if('te' == temp):
             Kategori.append('Drink')
             keyWord.append('Te')
-        elif('öl'== temp):
-            Kategori.append('Drink')
-            keyWord.append('Öl')
+            break
+        elif(temp.startswith('öl')):
+            if 'korv' in temp:
+                ...
+            else:
+                Kategori.append('Drink')
+                keyWord.append('Öl')
+                break
         elif('bullar'== temp):    
             Kategori.append('Ice cream, sweers & snacks')
             keyWord.append('Bullar')
+            break
 
-        elif  ((doc2[b].id).lower()) in ((titel.lower())):    
+        if  ((doc2[b].id).lower()) in ((titel.lower())):    
             Titlar=list((doc2[b])._data.keys())
             Data=list((doc2[b])._data.values())
             ind=Titlar.index('Kategori')
@@ -190,9 +196,9 @@ for i in LankarErbjButik:
     driver.get('%s' % i)
 
     try:
-        WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".banner-actions-container"))).click()
+        WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".banner-actions-container"))).click()
     except:
-        print("No cookie") 
+        ...
 
     time.sleep(5)
     soup = BeautifulSoup(driver.page_source, features="html.parser")
