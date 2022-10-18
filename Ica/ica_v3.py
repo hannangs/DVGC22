@@ -300,8 +300,8 @@ for i in LankarErbjButik:
             "Giltig start": giltigStart,
             "Giltig slut": giltigSlut,
             "Jämfört pris(st)":jamfortPris_st[y],
-            "Jämfört pris(/kg)": jamfortPris_kg[y],
-            "Jämfört pris(/lit)": jamfortPris_L[y],
+            "Jämfört pris(kg)": jamfortPris_kg[y],
+            "Jämfört pris(lit)": jamfortPris_L[y],
             "Nyckelord": keyWord[y],
         }
 

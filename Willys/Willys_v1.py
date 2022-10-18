@@ -88,12 +88,14 @@ for i in LankarErbjButik:
     try:
         WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID,'onetrust-accept-btn-handler'))).click()
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(1)
         WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".Buttonstyles__StyledButton-sc-1g4oxwr-0.dLUxJp.LoadMore__LoadMoreBtn-sc-16fjaj7-3.bnbvpm"))).click()
-        for a in range (0,6):
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(1)
     except:
         ...
+
+    for a in range (0,6):
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(1)
 
     soup = BeautifulSoup(driver.page_source, features="html.parser")
     Butik=soup.find('h2', attrs={'class':'Headingstyles__StyledH2-sc-r7tfy8-1 cJhDBd'}).text
@@ -293,8 +295,8 @@ for i in LankarErbjButik:
             "Giltig start": giltigStart,
             "Giltig slut": giltigSlut,
             "Jämfört pris(st)": jamfortPris_st[y],
-            "Jämfört pris(/kg)": jamfortPris_kg[y],
-            "Jämfört pris(/lit)": jamfortPris_L[y],
+            "Jämfört pris(kg)": jamfortPris_kg[y],
+            "Jämfört pris(lit)": jamfortPris_L[y],
             "Nyckelord": keyWord[y],
         }
 
@@ -308,3 +310,8 @@ for i in LankarErbjButik:
             document_id =Produkter[y],
             data = data
         )
+
+
+
+
+        

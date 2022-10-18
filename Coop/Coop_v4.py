@@ -19,6 +19,7 @@ doc2 = doc_ref2.get()
 giltigStart = datetime.now()
 tidBer = timedelta(days=6)
 giltigSlut = giltigStart + tidBer
+Butiker=[]
 
 LankarErbjButik=[]
 for docs in doc:
@@ -184,8 +185,8 @@ for i in LankarErbjButik:
             "Övrig info":info[y],
             "Pris": Pris[y],
             "Jämfört pris(st)": jamfortPris_st[y],
-            "Jämfört pris(/kg)": jamfortPris_kg[y],
-            "Jämfört pris(/lit)": jamfortPris_L[y],
+            "Jämfört pris(kg)": jamfortPris_kg[y],
+            "Jämfört pris(lit)": jamfortPris_L[y],
             "Kategori":Kategori[y],
             "Giltig start": giltigStart,
             "Giltig slut": giltigSlut,
@@ -202,6 +203,5 @@ for i in LankarErbjButik:
             document_id =Produkter[y],
             data = data
         )
-
 driver.close()
 

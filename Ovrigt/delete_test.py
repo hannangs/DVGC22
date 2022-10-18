@@ -64,3 +64,22 @@ try:
 except:
     print("Lidl finns ej")
 
+try:
+    doc_ref_butik = db.collection(u'Erbjudanden_sok')
+    doc_butik = doc_ref_butik.get()
+    count=len(doc_butik)
+    if count !=0:
+        delete_collection(doc_ref_butik, count)
+    data_sok = {
+                "Coop butiker": "demo",
+            }
+    def save_sok(collection_id_sok, document_id_sok, data_sok):
+        db.collection(collection_id_sok).document(document_id_sok).set(data_sok)
+    save_sok(          
+        collection_id_sok="Erbjudanden_sok",
+        document_id_sok = "demo",
+        data_sok = data_sok
+    )  
+except:
+    print("Erbj sok finns ej")
+
